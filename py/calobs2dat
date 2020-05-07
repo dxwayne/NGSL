@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+# -*- coding: latin-1 -*-
+# HEREHEREHERE
+
+#############################################################################
+# /home/git/clones/SAS2019/Miles/calobs2dat
+#
+#
+#emacs helpers
+# (insert (buffer-file-name))
+#
+# (ediff-current-file)
+# (wg-python-fix-pdbrc)
+# (find-file-other-frame "./.pdbrc")
+# (wg-python-fix-pdbrc)   # PDB DASH DEBUG end-comments
+#
+# (setq mypdbcmd (concat (buffer-file-name) "<args...>"))
+# (progn (wg-python-fix-pdbrc) (pdb mypdbcmd))
+#
+# (wg-astroconda-pdb)       # IRAF27
+# (wg-astroconda3-pdb)      # CONDA Python3
+#
+# (set-background-color "light blue")
+# (wg-python-toc)
+#
+#############################################################################
+import optparse
+import sys
+import numpy as np
+from astropy.io import fits
+from astropy.table import Table
+
+# (wg-python-graphics)
+__doc__ = """
+
+calobs2py [files]
+
+Make a filename.dat file from filename.fits
+
+options:
+
+-l --list  <atfile> file with list of filenames, per line
+
+
+ Col# Name (Units)       Format
+   1 WAVELENGTH (ANGSTROM 1E
+   2 FLUX (FLAM)          1E
+   3 STATERROR (FLAM)     1E
+   4 SYSERROR (FLAM)      1E
+   5 FWHM (ANGSTROMS)     1E
+   6 DATAQUAL             1E
+   7 GROSS (FN)           1E
+   8 BACK (FN)            1E
+   9 NETRATE (FN/SEC)     1E
+  10 TOTEXP (SEC)         1E
+
+
+
+"""
+
+
+__author__  = 'Wayne Green'
+__version__ = '0.1'
+
+
+
+
+##############################################################################
+#                                    Main
+#                               Regression Tests
+##############################################################################
+# HEREHEREHERE
+if __name__ == "__main__":
+   opts = optparse.OptionParser(usage="%prog "+__doc__)
+
+   opts.add_option("-v", "--verbose", action="store_true", dest="verboseflag",
+                   default=False,
+                   help="<bool>     be verbose about work.")
+   opts.add_option("-l", "--list", action="store", dest="atfile",
+                   default=None,
+                   help="<atfile>     file with list of files, one per line.")
+
+   (options, args) = opts.parse_args()
+
+   if(options.atfile is not None):
+      with open(options.atfile,'r') as f:
+         for l in f:
+            args.append(l.strip())
+
+   for filename in args:
+      basename  = filename.split('.')
+      newname   = '.'.join(basename[:-1]) + '.dat'
+      print(basename,newname)
+      if(options.verboseflag):
+         print("{}".format(filename), file=sys.stderr)
+
+      with open(newname,'w') as nf:
+         try:
+            f      = fits.open(filename)
+            hdu    = f[1]
+            data   = hdu.data
+            cnames = []
+            cols   = hdu.columns
+         except Exception as e:
+            print("OOps {} was bad {}".format(filename,e.__str__()))
+         else:
+            for c in cols:  # PDB-DEBUG
+               cnames.append(c.name)
+            print("# CALOBS data set.",file=nf)
+            print("# https://archive.stsci.edu/prepds/calobsngsl/index.html",file=nf)
+            print('#  {:13s}    {:13s}  {:13s} '.format(cnames[0],cnames[1],cnames[2]),file=nf)
+            for d in data:                                                     
+               w,f,err = (d[0],d[1],d[2])                                      
+               if(not np.isnan(f)):                                            
+                  print("{:13.4f} {:13.8e} {:13.8e} ".format( w,f,err),file=nf)
+
+
+

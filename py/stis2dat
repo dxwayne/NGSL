@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+# -*- coding: latin-1 -*-
+# HEREHEREHERE
+
+#############################################################################
+# /home/git/clones/SAS2019/Miles/stis2dat
+# 
+#
+#emacs helpers
+# (insert (buffer-file-name))
+#
+# (ediff-current-file)
+# (wg-python-fix-pdbrc)
+# (find-file-other-frame "./.pdbrc")
+# (wg-python-fix-pdbrc)   # PDB DASH DEBUG end-comments
+#
+# (setq mypdbcmd (concat (buffer-file-name) "<args...>"))
+# (progn (wg-python-fix-pdbrc) (pdb mypdbcmd))
+#
+# (wg-astroconda-pdb)       # IRAF27
+# (wg-astroconda3-pdb)      # CONDA Python3
+#
+# (set-background-color "light blue")
+# (wg-python-toc)
+#               
+#############################################################################
+import optparse
+import sys
+from astropy.io import fits
+from astropy.table import Table
+
+# (wg-python-graphics)
+__doc__ = """
+
+stis2py [files]
+
+Make a filename.dat file from filename.fits
+
+options:
+
+-l --list  <atfile> file with list of filenames, per line
+
+
+
+
+
+"""
+
+
+__author__  = 'Wayne Green'
+__version__ = '0.1'
+ 
+
+
+
+##############################################################################
+#                                    Main
+#                               Regression Tests
+##############################################################################
+# HEREHEREHERE
+if __name__ == "__main__":
+   opts = optparse.OptionParser(usage="%prog "+__doc__)
+
+   opts.add_option("-v", "--verbose", action="store_true", dest="verboseflag",
+                   default=False,
+                   help="<bool>     be verbose about work.")
+   opts.add_option("-v", "--verbose", action="store", dest="atfile",
+                   default=None,
+                   help="<atfile>     file with list of files, one per line.")
+
+   (options, args) = opts.parse_args()
+
+   if(options.atfile is not None):
+      with open(options.atfile,'r') as f:
+         for l in f:
+            args.append(l.strip())
+
+   for filename in args:
+      basename  = filename.split(.)
+      newname   = '.'.join(basename[-1]) + '.dat'
+      
+      with open(newname,'w') as nf:
+         f      = fits.open(filename)
+         hdu    = f[1]
+         data   = hdu.data
+         cnames = []
+         cols   = hdu.columns
+         for c in cols:
+            cnames.append(c.name)
+         print("# Next Generation Specral Library",file=nf)
+         print("# https://archive.stsci.edu/prepds/stisngsl/index.html",file=nf)
+         print('#  {:13s}   {:13s} {:13s} '.format(*cnames),file=nf)
+         for w,f,err in data:
+            print("{:13.4f} {:13.4f} {:13.4f} ".format( w,f,err),file=nf))
+      break

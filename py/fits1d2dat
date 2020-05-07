@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+# -*- coding: latin-1 -*-
+# HEREHEREHERE
+
+#############################################################################
+#
+#  /home/wayne/bin/fits1d2dat
+#
+#emacs helpers
+# (insert (buffer-file-name))
+#
+# (ediff-current-file)
+# (wg-python-fix-pdbrc)
+# (find-file-other-frame "./.pdbrc")
+# (wg-python-fix-pdbrc)   # PDB DASH DEBUG end-comments
+#
+# (setq mypdbcmd (concat (buffer-file-name) "<args...>"))
+# (progn (wg-python-fix-pdbrc) (pdb mypdbcmd))
+#
+# (wg-astroconda-pdb)       # IRAF27
+# (wg-astroconda3-pdb)      # CONDA Python3
+#
+# (set-background-color "light blue")
+# (wg-python-toc)
+#
+#############################################################################
+import optparse
+import re
+import sys
+from astropy.io import fits
+import numpy as np
+
+# (wg-python-graphics)
+__doc__ = """
+
+/home/wayne/bin/fits1d2dat
+[options] files...
+
+   Produces <filename>.dat files.
+
+    3 | NAXIS   =                    1 / number of data axes
+    4 | NAXIS1  =                 6700 / length of data axis 1
+   11 | BUNIT   = 'erg /s /cm2 /angstroms ' /Physical units of data array
+   19 | CTYPE1  = 'LINEAR  '
+   20 | CRVAL1  =      3200.0000000000 /
+   21 | CRPIX1  =                   1.
+   22 | CDELT1  =      1.0000000000000 /
+   23 | CD1_1   =      1.0000000000000 /
+   24 | LTM1_1  =                   1.
+   25 | WAT0_001= 'system=equispec'
+   26 | WAT1_001= 'wtype=linear label=Wavelength units=Angstroms'
+   27 | STARIDEN= 'HR2422             '/ star identification
+   28 | SPECTYPE= 'O8V+...            '/ spectral type
+   29 | ISEXTINC=                1.130 / interstellar extinction Av
+
+
+
+"""
+
+
+__author__  = 'Wayne Green'
+__version__ = '0.1'
+
+##############################################################################
+#                                    Main
+#                               Regression Tests
+##############################################################################
+# HEREHEREHERE
+if __name__ == "__main__":
+   opts = optparse.OptionParser(usage="%prog "+__doc__)
+
+   opts.add_option("-u", "--ulimit", action="store", dest="upperlimit",
+                   default="10000",
+                   help="<float>     upper cuttoff in Angstroms.")
+
+   opts.add_option("-v", "--verbose", action="store_true", dest="verboseflag",
+                   default=False,
+                   help="<bool>     be verbose about work.")
+
+   (options, args) = opts.parse_args()
+
+
+
+   try:
+      ulimit = float(options.upperlimit)
+   except Exception as e:
+      print("Error with upperlimit, expecting float, found |{}|\n{}",format(options.upperlimit,e.__str__()))
+
+   for filename in args:
+      outname = '.'.join((filename.split('.'))[:-1]) + ".dat"
+      with fits.open(filename) as f, open(outname,'w') as outf:
+         d = f[0].data
+         h = f[0].header
+         delta = h['CDELT1'] / 10.0
+         cdval = h['CRVAL1']
+         cd1 = 0
+         print("#Angstrom {:s}".format(h['BUNIT']), file=outf)
+         print("# Star {} SPType {} CRVAL1 {} CDELT1 {}".format(h['STARIDEN'],h['SPECTYPE'],
+                                                                h['CRVAL1'],h['CDELT1']),file=outf)
+         for i,v in enumerate(d):
+            angs = cdval+(i*cd1)
+            if(angs > ulimit):
+               break
+            print("{:10.3f} {:10.3e}".format(angs,v),file=outf)
+            cd1 += delta
+
+
+
+
