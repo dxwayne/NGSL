@@ -8,6 +8,7 @@ NGSL Small Telescope Spectral Reference Resources's
    license
    queries
    README
+   Astrophysics
 
 Indices and tables
 ==================
