@@ -9,6 +9,8 @@ NGSL Small Telescope Spectral Reference Resources's
    queries
    README
    Astrophysics
+   code
+   modules
 
 Indices and tables
 ==================

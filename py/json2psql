@@ -38,13 +38,13 @@
 #
 # class ADQL_JSON_PSQL:  # ADQL_JSON_PSQL(object) if inherited
 #    def __init__(self, tablename, db_description, jsonfile):           # ADQL_JSON_PSQL::__init__()
-#    def debug(self,msg="",os=sys.stderr):             # ADQL_JSON_PSQL::debug()
-#    def maketable_definition(self):                   # ADQL_JSON_PSQL::maketable_definition()
-#    def make_inserts(self):                           # ADQL_JSON_PSQL::make_inserts()
-#    def log_error(self,line,field,value,dtype):       # ADQL_JSON_PSQL::log_error()
+#    def debug(self,msg="",os=sys.stderr):               # ADQL_JSON_PSQL::debug()
+#    def maketable_definition(self):                     # ADQL_JSON_PSQL::maketable_definition()
+#    def make_inserts(self):                             # ADQL_JSON_PSQL::make_inserts()
+#    def log_error(self,line,field,value,dtype):         # ADQL_JSON_PSQL::log_error()
 #    def sanity_check_data(self,line,field,value,dtype): # ADQL_JSON_PSQL.sanity_check_data()
-#    def insert(self):                                 # ADQL_JSON_PSQL::insert()
-#    def writepsqlfile(self):                          # ADQL_JSON_PSQL::writepsqlfile()
+#    def insert(self):                                   # ADQL_JSON_PSQL::insert()
+#    def writepsqlfile(self):                            # ADQL_JSON_PSQL::writepsqlfile()
 #
 #
 #
@@ -57,12 +57,15 @@ import psycopg2              # ah, postgresql
 import collections           # use an ordered dict, keep cards in order
 import getpass               # Shuuuush! we're secret!
 
+__all__ = ["s2r","s2d","pquote","ADQL_JSON_PSQLException","ADQL_JSON_PSQL"]
+
+
 # (wg-python-graphics)
 __doc__ = """
 
-fits2psql  [options] files...
+json2psql  [options] files...
 
-fits2psql -D mydb -t mynewtable
+json2psql -D mydb -t mynewtable
 
 Asks for password for the user. if -u/--user omitted then
 the user's name is taken from system login information.

@@ -22,14 +22,36 @@
 #
 # (set-background-color "light blue")
 # (wg-python-toc)
+#
+#
+# class TOPCAT_VOTableException(Exception):
+#    def __init__(self,message,errors=None):
+#    @staticmethod
+#    def __format__(e):
+#
+# class TOPCAT_VOTable:  # TOPCAT_VOTable(object) if inherited
+#    def __init__(self,filename):                       # TOPCAT_VOTable::__init__()
+#    def debug(self,msg="",os=sys.stderr):           # TOPCAT_VOTable::debug()
+#
+# class GAIA_VOTableException(Exception):
+#    def __init__(self,message,errors=None):
+#    @staticmethod
+#    def __format__(e):
+#
+# class GAIA_VOTable:  # GAIA_VOTable(object) if inherited
+#    def __init__(self,filename):                               # GAIA_VOTable::__init__()
+#    def debug(self,msg="",os=sys.stderr):           # GAIA_VOTable::debug()
+#
+#
 #               
 #############################################################################
 import optparse
 import re
 import sys
 import numpy as np
-import pyvo as vo
+#import pyvo as vo
 from astropy.io.votable import parse
+__all__ = ["TOPCAT_VOTableException","TOPCAT_VOTable","GAIA_VOTableException","GAIA_VOTable"]
 
 # (wg-python-graphics)
 __doc__ = """
@@ -44,7 +66,6 @@ __doc__ = """
 
 __author__  = 'Wayne Green'
 __version__ = '0.1'
-
 
 
 ##############################################################################

@@ -17,15 +17,18 @@ sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../../'))
 
 
+
 # -- Project information -----------------------------------------------------
 
 project = 'NGSL Small Telescope Spectral References'
-copyright = '2020, Wayne Green, Anthony Rodda, Clarke Yeager'
-author = 'Wayne Green, Anthony Rodda, Clarke Yeager'
+copyright = '2020, Wayne Green, Antony Rodda, Clarke Yaeger'
+author = 'Wayne Green, Antony Rodda, Clarke Yaeger'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
 
+# The master toctree document.
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 
@@ -53,6 +56,8 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+# If true, `todo` and `todoList` produce output, else they produce nothing.
+todo_include_todos = True
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -66,15 +71,4 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-
-# -- Extension configuration -------------------------------------------------
-
-# -- Options for intersphinx extension ---------------------------------------
-
-# Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/3/': None}
-
-# -- Options for todo extension ----------------------------------------------
-
-# If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True
