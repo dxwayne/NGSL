@@ -41,17 +41,16 @@ from astropy.io import fits  # open file, deal with the header
 import json                  # json data
 import collections           # use an ordered dict, keep cards in order
 import pprint
-from utils import *          # cleanpath,cleantarget,s2r,s2d,pquote
+from .utils import *          # cleanpath,cleantarget,s2r,s2d,pquote
 
 # (wg-python-graphics)
 __doc__ = """
-
 fits2psqlraw  [options] files...
 
-ls -1 *fits > table.idx
+ls -1 \*fits > table.idx
 fits2psqlraw -D mydb -t mynewtable --list table.idx
 
-./fits2psqlraw -D wayne -t rawngslheaders --target=TARGNAME --index *fits > rawngslheaders.psql
+./fits2psqlraw -D wayne -t rawngslheaders --target=TARGNAME --index \*fits > rawngslheaders.psql
 
 Given a FITS files on on the command line or -T <filename> with fits
 files, one per line with blank lines and sharp to end of line ignored,
@@ -103,7 +102,7 @@ Command Line flags
 --list           str      file of files; one fqpathname per line
 
 Keyword Fields
--------------
+--------------
 --ra             str      keyword of the RA field  e.g.: TARGRA
 --dec            str      keyword of the DEC field
 --target         str      keyword of the Target's catalog name.
@@ -120,64 +119,76 @@ q3c_radial_query(tablera, tabledec, queryra, querydec, radiusdegrees)
 
 Here are some sample queries:
 
-select count(*) from myfits;
-select ora,odec from myfits limit 10;
+.. code-block:: psql
+   :linenos:
 
-select fqpname,ora::numeric(7,5),odec::numeric(7,5) from myfits
-   where q3c_radial_query(ora, odec, 9.7419958, 48.3369, 0.1);
+   select count(*) from myfits;
+   select ora,odec from myfits limit 10;
+   
+   select fqpname,ora::numeric(7,5),odec::numeric(7,5) from myfits
+      where q3c_radial_query(ora, odec, 9.7419958, 48.3369, 0.1);
+   
+   -- Acid test with timing examples
 
-# Acid test with timing examples
-\timing
-select header->'OBJECT' ->> 'value' as "OBJECT",
-       fqpname,
-       ora::numeric(7,5) as "RA",
-       odec::numeric(7,5) as "Dec",
-       COALESCE(header->'FILTER' ->> 'value' as "Filter"),     -- force NULL if json fails.
-       COALESCE(header->'DATE-OBS'  ->> 'value'  as "dateobs")
-from myfits
-   where q3c_radial_query(ora, odec, 9.7419958, 48.3369, 0.1)
-   order by header->'FILTER'->> 'value',header->'DATE-OBS'->> 'value';
-\timing
+   \\timing
+   select header->'OBJECT' ->> 'value' as "OBJECT",
+          fqpname,
+          ora::numeric(7,5) as "RA",
+          odec::numeric(7,5) as "Dec",
+          COALESCE(header->'FILTER' ->> 'value' as "Filter"),     -- force NULL if json fails.
+          COALESCE(header->'DATE-OBS'  ->> 'value'  as "dateobs")
+   from myfits
+      where q3c_radial_query(ora, odec, 9.7419958, 48.3369, 0.1)
+      order by header->'FILTER'->> 'value',header->'DATE-OBS'->> 'value';
+   \\timing
 
-  OBJECT   |               fqpname                |   RA    |   Dec    | Filter |          dateobs
------------+--------------------------------------+---------+----------+--------+---------------------------
- 'NGC185'  | elp1m008-kb74-20140525-0059-e90.fits | 9.74200 | 48.33700 | 'ip'   | '2014-05-26T10:50:17.539'
- 'NGC185'  | elp1m008-kb74-20140525-0060-e90.fits | 9.74200 | 48.33701 | 'ip'   | '2014-05-26T10:52:14.272'
- 'NGC185'  | elp1m008-kb74-20140624-0048-e90.fits | 9.74200 | 48.33700 | 'ip'   | '2014-06-25T09:14:32.307'
- 'NGC185'  | elp1m008-kb74-20140624-0049-e90.fits | 9.74199 | 48.33698 | 'ip'   | '2014-06-25T09:16:28.901'
- 'NGC185'  | elp1m008-kb74-20140919-0035-e90.fits | 9.74200 | 48.33699 | 'ip'   | '2014-09-20T08:29:59.623'
- 'NGC185'  | elp1m008-kb74-20140919-0036-e90.fits | 9.74200 | 48.33699 | 'ip'   | '2014-09-20T08:31:56.280'
- 'NGC0185' | elp1m008-kb74-20141026-0084-e90.fits | 9.74199 | 48.33699 | 'ip'   | '2014-10-27T01:59:41.961'
- 'NGC0185' | elp1m008-kb74-20141026-0085-e90.fits | 9.74198 | 48.33700 | 'ip'   | '2014-10-27T02:01:39.030'
- 'NGC0185' | elp1m008-kb74-20141113-0148-e90.fits | 9.74201 | 48.33703 | 'ip'   | '2014-11-14T08:04:45.533'
- 'NGC0185' | elp1m008-kb74-20141113-0149-e90.fits | 9.74199 | 48.33701 | 'ip'   | '2014-11-14T08:06:41.930'
- 'NGC0185' | elp1m008-kb74-20141213-0212-e90.fits | 9.74200 | 48.33700 | 'ip'   | '2014-12-14T06:05:21.695'
- 'NGC0185' | elp1m008-kb74-20141213-0213-e90.fits | 9.74199 | 48.33701 | 'ip'   | '2014-12-14T06:07:18.217'
- 'NGC0185' | elp1m008-kb74-20150119-0112-e90.fits | 9.74199 | 48.33697 | 'ip'   | '2015-01-20T03:35:00.511'
- 'NGC0185' | elp1m008-kb74-20150119-0113-e90.fits | 9.74199 | 48.33696 | 'ip'   | '2015-01-20T03:36:57.501'
- 'NGC0185' | elp1m008-kb74-20141026-0086-e90.fits | 9.74200 | 48.33701 | 'rp'   | '2014-10-27T02:03:46.954'
- 'NGC0185' | elp1m008-kb74-20141026-0087-e90.fits | 9.74201 | 48.33701 | 'rp'   | '2014-10-27T02:05:43.386'
- 'NGC0185' | elp1m008-kb74-20141113-0150-e90.fits | 9.74200 | 48.33701 | 'rp'   | '2014-11-14T08:08:50.869'
- 'NGC0185' | elp1m008-kb74-20141113-0151-e90.fits | 9.74200 | 48.33696 | 'rp'   | '2014-11-14T08:10:47.421'
- 'NGC0185' | elp1m008-kb74-20141213-0214-e90.fits | 9.74200 | 48.33699 | 'rp'   | '2014-12-14T06:09:26.973'
- 'NGC0185' | elp1m008-kb74-20141213-0215-e90.fits | 9.74201 | 48.33700 | 'rp'   | '2014-12-14T06:11:24.220'
- 'NGC0185' | elp1m008-kb74-20150119-0114-e90.fits | 9.74201 | 48.33699 | 'rp'   | '2015-01-20T03:39:05.758'
- 'NGC0185' | elp1m008-kb74-20150119-0115-e90.fits | 9.74200 | 48.33699 | 'rp'   | '2015-01-20T03:41:03.008'
+
+.. csv-table:: "Query Example"
+   :header"  "OBJECT", "fqpname", "RA", "Dec", "Filter", "dateobs"
+   :widths"  18,40,12,12,12,32
+
+   'NGC185'  , elp1m008-kb74-20140525-0059-e90.fits , 9.74200 , 48.33700 , 'ip'   , '2014-05-26T10:50:17.539'
+   'NGC185'  , elp1m008-kb74-20140525-0060-e90.fits , 9.74200 , 48.33701 , 'ip'   , '2014-05-26T10:52:14.272'
+   'NGC185'  , elp1m008-kb74-20140624-0048-e90.fits , 9.74200 , 48.33700 , 'ip'   , '2014-06-25T09:14:32.307'
+   'NGC185'  , elp1m008-kb74-20140624-0049-e90.fits , 9.74199 , 48.33698 , 'ip'   , '2014-06-25T09:16:28.901'
+   'NGC185'  , elp1m008-kb74-20140919-0035-e90.fits , 9.74200 , 48.33699 , 'ip'   , '2014-09-20T08:29:59.623'
+   'NGC185'  , elp1m008-kb74-20140919-0036-e90.fits , 9.74200 , 48.33699 , 'ip'   , '2014-09-20T08:31:56.280'
+   'NGC0185' , elp1m008-kb74-20141026-0084-e90.fits , 9.74199 , 48.33699 , 'ip'   , '2014-10-27T01:59:41.961'
+   'NGC0185' , elp1m008-kb74-20141026-0085-e90.fits , 9.74198 , 48.33700 , 'ip'   , '2014-10-27T02:01:39.030'
+   'NGC0185' , elp1m008-kb74-20141113-0148-e90.fits , 9.74201 , 48.33703 , 'ip'   , '2014-11-14T08:04:45.533'
+   'NGC0185' , elp1m008-kb74-20141113-0149-e90.fits , 9.74199 , 48.33701 , 'ip'   , '2014-11-14T08:06:41.930'
+   'NGC0185' , elp1m008-kb74-20141213-0212-e90.fits , 9.74200 , 48.33700 , 'ip'   , '2014-12-14T06:05:21.695'
+   'NGC0185' , elp1m008-kb74-20141213-0213-e90.fits , 9.74199 , 48.33701 , 'ip'   , '2014-12-14T06:07:18.217'
+   'NGC0185' , elp1m008-kb74-20150119-0112-e90.fits , 9.74199 , 48.33697 , 'ip'   , '2015-01-20T03:35:00.511'
+   'NGC0185' , elp1m008-kb74-20150119-0113-e90.fits , 9.74199 , 48.33696 , 'ip'   , '2015-01-20T03:36:57.501'
+   'NGC0185' , elp1m008-kb74-20141026-0086-e90.fits , 9.74200 , 48.33701 , 'rp'   , '2014-10-27T02:03:46.954'
+   'NGC0185' , elp1m008-kb74-20141026-0087-e90.fits , 9.74201 , 48.33701 , 'rp'   , '2014-10-27T02:05:43.386'
+   'NGC0185' , elp1m008-kb74-20141113-0150-e90.fits , 9.74200 , 48.33701 , 'rp'   , '2014-11-14T08:08:50.869'
+   'NGC0185' , elp1m008-kb74-20141113-0151-e90.fits , 9.74200 , 48.33696 , 'rp'   , '2014-11-14T08:10:47.421'
+   'NGC0185' , elp1m008-kb74-20141213-0214-e90.fits , 9.74200 , 48.33699 , 'rp'   , '2014-12-14T06:09:26.973'
+   'NGC0185' , elp1m008-kb74-20141213-0215-e90.fits , 9.74201 , 48.33700 , 'rp'   , '2014-12-14T06:11:24.220'
+   'NGC0185' , elp1m008-kb74-20150119-0114-e90.fits , 9.74201 , 48.33699 , 'rp'   , '2015-01-20T03:39:05.758'
+   'NGC0185' , elp1m008-kb74-20150119-0115-e90.fits , 9.74200 , 48.33699 , 'rp'   , '2015-01-20T03:41:03.008'
+
 Time: 12.903 ms
 
 Taking Sergey's advice, and re-timing the query:
+   
 
-\timing
-select header->'OBJECT' ->> 'value' as "OBJECT",
-       fqpname,
-       ora::numeric(7,5) as "RA",
-       odec::numeric(7,5) as "Dec",
-       header->'FILTER' ->> 'value' as "Filter",
-       header->'DATE-OBS'  ->> 'value'  as dateobs
-from myfits
-   where q3c_join(9.7419958, 48.3369, ora, odec, 0.1)
-   order by header->'FILTER'->> 'value',header->'DATE-OBS'->> 'value';
-\timing
+.. code-block:: psql
+   :linenos:
+
+   \\timing
+   select header->'OBJECT' ->> 'value' as "OBJECT",
+          fqpname,
+          ora::numeric(7,5) as "RA",
+          odec::numeric(7,5) as "Dec",
+          header->'FILTER' ->> 'value' as "Filter",
+          header->'DATE-OBS'  ->> 'value'  as dateobs
+   from myfits
+      where q3c_join(9.7419958, 48.3369, ora, odec, 0.1)
+      order by header->'FILTER'->> 'value',header->'DATE-OBS'->> 'value';
+   \\timing
 
 Time: 9.848 ms 
 
@@ -241,7 +252,7 @@ if __name__ == "__main__":
 
    opts.add_option("-w", "--write", action="store", dest="write",
                    default=None,
-                   help="<str>     output file name for \\i ....")
+                   help="<str>     output file name for \\i <includepsqlfile>....")
 
    opts.add_option("--basepath", action="store", dest="basepath",
                    default=None,

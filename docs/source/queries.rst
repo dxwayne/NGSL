@@ -1,9 +1,8 @@
 Handy Queries
 =============
 
-.. role:: red
 
-This project is proceeding from two points of view:
+This project is proceeding from two points of view\:
 
 1. Integrate the spectral libraries from astronomical projects.
 2. Take in spectra from large and small telescope programs.
@@ -32,7 +31,7 @@ of the originating observatories and small telescope observers
 differ. Databases require exact matches, and to these ends require
 a process to assure data integrity and referential integrity. The
 astrometric positions are not precise, and 'neighborhood' (cone)
-are required. Target names have various assumptions built in: e.g.:
+are required. Target names have various assumptions built in e.g.\:
 occasional use of two spaces rather than one. While the brain
 can accommodate the difference -- machines trip over the mis-step.
 
@@ -57,7 +56,7 @@ declared to be a **jsonb** (binary json) field; the **->**
 operator brings out fields and the **->>** operator renders
 them into text form.
 
-Note: This is from the NGSL original files, where the "OBJECT"
+Note\: This is from the NGSL original files, where the "OBJECT"
 is called "TARGOBJ" etc.
 
 .. code-block:: psql
@@ -128,12 +127,12 @@ SIMBAD.
 
 .. code-block:: psql
    :linenos:
-   
+
    select b.id as "Given Target",
           header -> 'TARGNAME' ->> 'value' as "NGSLNAME",
           fqpname,r2s(b.ora)  as "RA",
           d2s(b.odec) as "DEC"
-   
+
    from stis           a
    join rawgiventargets b
    on q3c_join(a.ora,a.odec, b.ora,b.odec, 10.0)
@@ -156,7 +155,7 @@ is **TARGNAME** in this case. The compound select statement:
              header -> 'TARGNAME' ->> 'value' AS "NGSLNAME",
              fqpname,r2s(b.ora)               AS "RA",
              d2s(b.odec)                      AS "DEC"
-      
+
       FROM stis           a
       JOIN rawtonytargets b
       ON q3c_join(a.ora,a.odec, b.ora,b.odec, 10.0)
@@ -175,7 +174,7 @@ is **TARGNAME** in this case. The compound select statement:
              header -> 'TARGNAME' ->> 'value' AS "NGSLNAME",
              fqpname,r2s(b.ora)               AS "RA",
              d2s(b.odec)                      AS "DEC"
-      
+
       FROM stis           a
       JOIN rawtonytargets b
       ON q3c_join(a.ora,a.odec, b.ora,b.odec, 10.0)
@@ -183,34 +182,36 @@ is **TARGNAME** in this case. The compound select statement:
 
    ;
 
+
 .. code-block:: psql
    :linenos:
 
-\! sudo rm  /tmp/tonycsv.csv
-COPY (
+   \\\\! sudo rm  /tmp/tonycsv.csv
+   COPY (
+   
+      SELECT DISTINCT "TargName", "REF_NAME", fqpname,
+                      "REF_RA", "REF_DEC", "VMag",
+                      "SPType" , "SPQual"
+      FROM (
+         SELECT b.id                             AS "Given Target",
+                b.v::numeric(7,3)                AS "VMag",
+                b.sp_type                        AS "SPType",
+                b.sp_qual                        AS "SPQual",
+                b.id                             AS "TargName",
+                header -> 'TARGNAME' ->> 'value' AS "REF_NAME",
+                fqpname,r2s(b.ora)               AS "REF_RA",
+                d2s(b.odec)                      AS "REF_DEC"
+   
+         FROM stis           a
+         JOIN rawtonytargets b
+         ON q3c_join(a.ora,a.odec, b.ora,b.odec, 10.0)
+         ORDER BY "TargName",(b.ora::int)/15, b.odec
+         ) xx
+      -- limit 10
+       )
+       TO '/tmp/tonycsv.csv' WITH CSV HEADER DELIMITER ','
+       ;
 
-   SELECT DISTINCT "TargName", "REF_NAME", fqpname,
-                   "REF_RA", "REF_DEC", "VMag",
-                   "SPType" , "SPQual"
-   FROM (
-      SELECT b.id                             AS "Given Target",
-             b.v::numeric(7,3)                AS "VMag",
-             b.sp_type                        AS "SPType",
-             b.sp_qual                        AS "SPQual",
-             b.id                             AS "TargName",
-             header -> 'TARGNAME' ->> 'value' AS "REF_NAME",
-             fqpname,r2s(b.ora)               AS "REF_RA",
-             d2s(b.odec)                      AS "REF_DEC"
-      
-      FROM stis           a
-      JOIN rawtonytargets b
-      ON q3c_join(a.ora,a.odec, b.ora,b.odec, 10.0)
-      ORDER BY "TargName",(b.ora::int)/15, b.odec
-      ) xx
-   -- limit 10
-    )
-    TO '/tmp/tonycsv.csv' WITH CSV HEADER DELIMITER ','
-    ;
 
 .. raw:: latex
 
@@ -227,7 +228,7 @@ proper jdbc package. PostgreSQL is used:
    DROP TABLE    IF EXISTS giventargets;
    DROP SEQUENCE IF EXISTS giventargets_sequence;
    CREATE SEQUENCE         giventargets_sequence START 100000;
-   
+
    CREATE TABLE giventargets (
       uniqueid  integer PRIMARY KEY DEFAULT nextval('giventargets_sequence'),
       starname  text,
@@ -262,11 +263,16 @@ proper jdbc package. PostgreSQL is used:
       ('4 Her'          ,  'Tragos3 target' ),
       ('53 Boo'         ,  'Tragos3 target' ),
       ('AGDra'          ,  'Tragos3 target' );
-   
 
-copy (select * from giventargets)
-TO '/tmp/giventargets.csv'
-WITH  CSV DELIMITER ',' HEADER;
+
+To save to CSV\:
+
+.. code-block:: psql
+   :linenos:
+
+   copy (select * from giventargets)
+   TO '/tmp/giventargets.csv'
+   WITH  CSV DELIMITER ',' HEADER;
 
 This appears as a rather complicated name in the **Table list** of
 TOPCAT. The table name can then be changed to something easy to type
@@ -275,5 +281,55 @@ SIMBAD service.
 
 
 
+Be and Em stars
+===============
+
+A basic query of
+
+.. code-block:: psql
+   :linenos:
 
 
+   SELECT basic.oid, otype_txt, basic.ra, basic.dec, basic.sp_type,
+           basic.sp_qual, allfluxes.*
+   FROM basic
+      join allfluxes on basic.oid = allfluxes.oidref
+   WHERE basic.otype_txt = 'Be*' or basic.otype_txt = 'Em*'
+
+   -- returns 16,412 candidates together with all the fluxes.
+   -- There are 2204 **'Be*'** stars;
+
+   select count(*), v::integer as "Vmag" from beemstars
+   where otype_txt = 'Be*'
+   group by v::integer order by v::integer;
+
+
+.. code-block:: psql
+   :linenos:
+
+   select count(*), v::integer as "Vmag" from beemstars
+   where otype_txt = 'Em*'
+   group by v::integer order by v::integer;
+
+
+.. code-block:: psql
+   :linenos:
+
+   select count(*)
+      from (
+         select main_id,count(*) as "Count" from beemstars group by main_id
+      )xx
+   where "Count" >1
+   ;
+
+
+   create table dups as select main_id,count(*) from beemstars;
+
+
+   SELECT basic.oid, basic.main_id,
+           hlink.parent, otype_txt, basic.ra, basic.dec, basic.sp_type,
+           basic.sp_qual, allfluxes.*
+   FROM basic
+      join allfluxes on basic.oid = allfluxes.oidref
+      join hlink     on basic.oid = hlink.parent
+   WHERE basic.otype_txt = 'Be*' or basic.otype_txt = 'Em*'

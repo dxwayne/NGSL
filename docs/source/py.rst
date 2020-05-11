@@ -4,14 +4,6 @@ py package
 Submodules
 ----------
 
-py.Chainti module
------------------
-
-.. automodule:: py.Chainti
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 py.GAO\_VOTables module
 -----------------------
 
@@ -28,6 +20,22 @@ py.bessel1983 module
    :undoc-members:
    :show-inheritance:
 
+py.fits2psqlraw module
+----------------------
+
+.. automodule:: py.fits2psqlraw
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+py.json2psql module
+-------------------
+
+.. automodule:: py.json2psql
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 py.miles2psql module
 --------------------
 
@@ -40,6 +48,14 @@ py.setup module
 ---------------
 
 .. automodule:: py.setup
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+py.utils module
+---------------
+
+.. automodule:: py.utils
    :members:
    :undoc-members:
    :show-inheritance:

@@ -49,7 +49,7 @@ import json                  # json data
 import psycopg2              # ah, postgresql
 import collections           # use an ordered dict, keep cards in order
 import getpass               # Shuuuush! we're secret!
-from utils import s2r,s2d,pquote
+from .utils import s2r,s2d,pquote
 
 __all__ = ["ADQL_JSON_PSQLException","ADQL_JSON_PSQL"]
 
